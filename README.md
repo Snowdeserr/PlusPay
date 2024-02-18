@@ -1,0 +1,2 @@
+# PlusPay
+DonutSmp Pay Plugin
