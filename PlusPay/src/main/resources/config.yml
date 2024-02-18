@@ -1,0 +1,8 @@
+# PlusPay Configuration
+
+messages:
+  playerNotFound: "&cSpieler nicht gefunden."
+  notEnoughMoney: "&cDu hast nicht genug Geld."
+  paymentSuccess: "&aDu hast %amount% an %player% überwiesen."
+  offlinePaymentSuccess: "&aDu hast %amount% von einer Offline-Zahlung erhalten."
+  receivePayment: "&aYou have received %amount% from %player%."

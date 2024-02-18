@@ -1,0 +1,9 @@
+name: PlusPay
+version: '1.0-Plus'
+main: me.skythebuilder.pluspay.PlusPay
+api-version: '1.20'
+Author: Snowdesert
+commands:
+  pay:
+    description: Transfer money
+    usage: /pay <Player> <Amount>
