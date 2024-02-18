@@ -1,8 +1,10 @@
-# PlusPay Configuration
-
 messages:
-  playerNotFound: "&cSpieler nicht gefunden."
-  notEnoughMoney: "&cDu hast nicht genug Geld."
-  paymentSuccess: "&aDu hast %amount% an %player% überwiesen."
-  offlinePaymentSuccess: "&aDu hast %amount% von einer Offline-Zahlung erhalten."
+  playerNotFound: "&cPlayer not found."
+  notEnoughMoney: "&cYou don't have enough money."
+  paymentSuccess: "&aYou have transferred %amount% to %player%."
+  offlinePaymentSuccess: "&aYou have received %amount% from an offline payment."
+  actionBarPrefix: "&aPlusPay | Build by Snowdesert."
   receivePayment: "&aYou have received %amount% from %player%."
+
+sounds:
+  paymentSuccess: "ENTITY_PLAYER_LEVELUP"

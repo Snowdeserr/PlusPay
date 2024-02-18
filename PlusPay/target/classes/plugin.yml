@@ -7,3 +7,6 @@ commands:
   pay:
     description: Transfer money
     usage: /pay <Player> <Amount>
+
+  paytoggle:
+    description: Paytoggle

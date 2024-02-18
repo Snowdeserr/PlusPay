@@ -4,6 +4,7 @@ import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
+import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
@@ -19,17 +20,13 @@ import org.bukkit.plugin.java.JavaPlugin;
 import net.md_5.bungee.api.ChatColor;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-
 public class PlusPay extends JavaPlugin implements TabCompleter, Listener {
 
-    private Economy economy;
+    public Economy economy;
     private Map<String, Double> offlinePayments = new HashMap<>();
     private FileConfiguration offlinePaymentsConfig;
     private File offlinePaymentsFile;
@@ -39,6 +36,10 @@ public class PlusPay extends JavaPlugin implements TabCompleter, Listener {
     private String offlinePaymentSuccessMessage;
     private String actionBarPrefix;
     private String receivePaymentMessage;
+    private Sound paymentSuccessSound;
+    private String payToggleOnMessage;
+    private String payToggleOffMessage;
+    private Map<UUID, Boolean> messageToggle = new HashMap<>();
 
     @Override
     public void onEnable() {
@@ -55,6 +56,11 @@ public class PlusPay extends JavaPlugin implements TabCompleter, Listener {
 
         getCommand("pay").setExecutor(this);
         getCommand("pay").setTabCompleter(this);
+        getCommand("paytoggle").setExecutor(this);
+
+        if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            new MoneyPlaceholder(this).register();
+        }
     }
 
     private boolean setupEconomy() {
@@ -78,6 +84,9 @@ public class PlusPay extends JavaPlugin implements TabCompleter, Listener {
         getConfig().addDefault("messages.offlinePaymentSuccess", "&aYou have received %amount% from an offline payment.");
         getConfig().addDefault("messages.actionBarPrefix", "&aPlusPay | Build by Snowdesert.");
         getConfig().addDefault("messages.receivePayment", "&aYou have received %amount% from %player%.");
+        getConfig().addDefault("messages.payToggleOn", "&aPayment messages are ON.");
+        getConfig().addDefault("messages.payToggleOff", "&aPayment messages are OFF.");
+        getConfig().addDefault("sounds.paymentSuccess", "ENTITY_PLAYER_LEVELUP"); // Default sound
 
         getConfig().options().copyDefaults(true);
         saveConfig();
@@ -88,10 +97,30 @@ public class PlusPay extends JavaPlugin implements TabCompleter, Listener {
         offlinePaymentSuccessMessage = colorize(getConfig().getString("messages.offlinePaymentSuccess"));
         actionBarPrefix = colorize(getConfig().getString("messages.actionBarPrefix"));
         receivePaymentMessage = colorize(getConfig().getString("messages.receivePayment"));
+        payToggleOnMessage = colorize(getConfig().getString("messages.payToggleOn"));
+        payToggleOffMessage = colorize(getConfig().getString("messages.payToggleOff"));
+
+        paymentSuccessSound = Sound.valueOf(getConfig().getString("sounds.paymentSuccess"));
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+        if (cmd.getName().equalsIgnoreCase("paytoggle")) {
+            if (!(sender instanceof Player)) {
+                sender.sendMessage(ChatColor.RED + "This command can only be used by players.");
+                return true;
+            }
+
+            Player player = (Player) sender;
+            UUID playerId = player.getUniqueId();
+
+            boolean showMessages = messageToggle.getOrDefault(playerId, true);
+            messageToggle.put(playerId, !showMessages);
+
+            player.sendMessage(showMessages ? payToggleOnMessage : payToggleOffMessage);
+            return true;
+        }
+
         if (!(sender instanceof Player)) {
             sender.sendMessage(ChatColor.RED + "This command can only be used by players.");
             return true;
@@ -132,8 +161,11 @@ public class PlusPay extends JavaPlugin implements TabCompleter, Listener {
             economy.depositPlayer(target, amount);
 
             sendActionBar(player, paymentSuccessMessage.replace("%amount%", formatBalance(amount)).replace("%player%", target.getName()));
+            playSound(player, paymentSuccessSound);
 
-            sendActionBar(target, receivePaymentMessage.replace("%amount%", formatBalance(amount)).replace("%player%", player.getName()));
+            if (messageToggle.getOrDefault(player.getUniqueId(), true)) {
+                sendActionBar(target, receivePaymentMessage.replace("%amount%", formatBalance(amount)).replace("%player%", player.getName()));
+            }
         } else {
             player.sendMessage(notEnoughMoneyMessage);
         }
@@ -163,6 +195,10 @@ public class PlusPay extends JavaPlugin implements TabCompleter, Listener {
 
     private void sendActionBar(Player player, String message) {
         player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(message));
+    }
+
+    private void playSound(Player player, Sound sound) {
+        player.playSound(player.getLocation(), sound, 1.0f, 1.0f);
     }
 
     @EventHandler
@@ -204,7 +240,7 @@ public class PlusPay extends JavaPlugin implements TabCompleter, Listener {
         }
     }
 
-    private String formatBalance(double balance) {
+    public String formatBalance(double balance) {
         if (balance >= 1.0E12) {
             return String.format("%.2fT", balance / 1.0E12);
         } else if (balance >= 1.0E9) {
@@ -265,5 +301,9 @@ public class PlusPay extends JavaPlugin implements TabCompleter, Listener {
     @Override
     public void onDisable() {
         saveOfflinePayments();
+    }
+
+    public String getFormattedBalance(double balance) {
+        return formatBalance(balance);
     }
 }
