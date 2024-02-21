@@ -86,7 +86,8 @@ public class PlusPay extends JavaPlugin implements TabCompleter, Listener {
         getConfig().addDefault("messages.receivePayment", "&aYou have received %amount% from %player%.");
         getConfig().addDefault("messages.payToggleOn", "&aPayment messages are ON.");
         getConfig().addDefault("messages.payToggleOff", "&aPayment messages are OFF.");
-        getConfig().addDefault("sounds.paymentSuccess", "ENTITY_PLAYER_LEVELUP"); // Default sound
+        getConfig().addDefault("sounds.paymentSuccess", "ENTITY_PLAYER_LEVELUP"); 
+        
 
         getConfig().options().copyDefaults(true);
         saveConfig();
